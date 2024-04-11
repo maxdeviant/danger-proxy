@@ -1,9 +1,11 @@
 import danger_proxy/github.{type OwnerAndRepo, OwnerAndRepo}
 import danger_proxy/web.{type Context, middleware}
+import gleam/bit_array
 import gleam/http.{type Method, Get}
 import gleam/http/response
 import gleam/io
 import gleam/list
+import gleam/option
 import gleam/result.{try}
 import gleam/string
 import gleam/string_builder
@@ -29,6 +31,11 @@ fn proxy_github_api_request(
       |> result.map_error(fn(_) { "Request not allowed." }),
     )
 
+    let request_body =
+      req
+      |> wisp.read_body_to_bitstring
+      |> result.try(bit_array.to_string)
+
     wisp.log_info(
       "Proxying "
       <> {
@@ -42,7 +49,12 @@ fn proxy_github_api_request(
     )
 
     let github_result =
-      github.api_request(ctx.github_token, string.join(segments, "/"))
+      github.api_request(
+        ctx.github_token,
+        req.method,
+        string.join(segments, "/"),
+        option.from_result(request_body),
+      )
 
     github_result
   }
