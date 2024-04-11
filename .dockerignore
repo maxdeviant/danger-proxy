@@ -1,0 +1,17 @@
+# flyctl launch added from .gitignore
+#
+# Danger Proxy
+#
+
+# Keep it secret, keep it safe.
+**/.env
+
+#
+# Gleam
+#
+
+**/*.beam
+**/*.ez
+build
+**/erl_crash.dump
+fly.toml

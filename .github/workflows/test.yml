@@ -1,23 +1,36 @@
-name: test
+name: CI
+
+concurrency: ci-${{ github.ref }}
 
 on:
   push:
-    branches:
-      - master
-      - main
+    branches: [main]
   pull_request:
+    branches: [main]
+
+env:
+  FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
 
 jobs:
-  test:
+  build_and_test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: erlef/setup-beam@v1
+      - uses: actions/checkout@v4
+      - uses: erlef/setup-beam@v1.15.4
         with:
           otp-version: "26.0.2"
           gleam-version: "1.0.0"
           rebar3-version: "3"
-          # elixir-version: "1.15.4"
+      - run: gleam format --check src test
       - run: gleam deps download
       - run: gleam test
-      - run: gleam format --check src test
+
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    name: Deploy Danger Proxy
+    needs: build_and_test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+      - run: flyctl deploy --remote-only
