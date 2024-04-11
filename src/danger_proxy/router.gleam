@@ -1,6 +1,6 @@
 import danger_proxy/github.{type OwnerAndRepo, OwnerAndRepo}
 import danger_proxy/web.{type Context, middleware}
-import gleam/http
+import gleam/http.{type Method, Get}
 import gleam/http/response
 import gleam/io
 import gleam/list
@@ -25,7 +25,7 @@ fn proxy_github_api_request(
 ) -> Response {
   let proxy_result = {
     use _ <- try(
-      restrict_to_allowed_repos(segments, ctx.allowed_repos)
+      restrict_to_allowed_requests(req.method, segments, ctx.allowed_repos)
       |> result.map_error(fn(_) { "Request not allowed." }),
     )
 
@@ -65,21 +65,24 @@ fn proxy_github_api_request(
 }
 
 type AllowedRequest {
-  AllowedRequest(owner: String, repo: String, segments: List(String))
+  GetAuthenticatedUser
+  RepositoryRequest(owner: String, repo: String, segments: List(String))
 }
 
-fn restrict_to_allowed_repos(
+fn restrict_to_allowed_requests(
+  method: Method,
   segments: List(String),
   allowed: List(OwnerAndRepo),
 ) -> Result(AllowedRequest, Nil) {
-  case segments {
-    ["repos", owner, repo, ..rest] -> {
+  case #(method, segments) {
+    #(Get, ["user"]) -> Ok(GetAuthenticatedUser)
+    #(_, ["repos", owner, repo, ..rest]) -> {
       let is_allowed =
         allowed
         |> list.contains(OwnerAndRepo(owner, repo))
 
       case is_allowed {
-        True -> Ok(AllowedRequest(owner, repo, rest))
+        True -> Ok(RepositoryRequest(owner, repo, rest))
         False -> Error(Nil)
       }
     }
