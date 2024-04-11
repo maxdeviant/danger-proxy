@@ -1,3 +1,14 @@
+#
+# Danger Proxy
+#
+
+# Keep it secret, keep it safe.
+.env
+
+#
+# Gleam
+#
+
 *.beam
 *.ez
 /build
