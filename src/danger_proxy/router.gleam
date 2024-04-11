@@ -15,6 +15,11 @@ pub fn handle_request(req: Request, ctx: Context) -> Response {
   use req <- middleware(req, ctx)
 
   case wisp.path_segments(req) {
+    [] ->
+      wisp.ok()
+      |> wisp.string_body(
+        "Danger Proxy <https://github.com/maxdeviant/danger-proxy>",
+      )
     ["github", ..segments] -> proxy_github_api_request(req, ctx, segments)
     _ -> wisp.not_found()
   }
