@@ -6,6 +6,7 @@ import gleam/http/response
 import gleam/io
 import gleam/list
 import gleam/option
+import gleam/uri
 import gleam/result.{try}
 import gleam/string
 import gleam/string_builder
@@ -36,6 +37,8 @@ fn proxy_github_api_request(
       |> result.map_error(fn(_) { "Request not allowed." }),
     )
 
+    let query = wisp.get_query(req)
+
     let request_body =
       req
       |> wisp.read_body_to_bitstring
@@ -50,6 +53,12 @@ fn proxy_github_api_request(
       }
       <> " /"
       <> string.join(segments, "/")
+      <> {
+        case query {
+          [] -> ""
+          query -> "?" <> uri.query_to_string(query)
+        }
+      }
       <> " to GitHub",
     )
 
@@ -58,6 +67,7 @@ fn proxy_github_api_request(
         ctx.github_token,
         req.method,
         string.join(segments, "/"),
+        query,
         option.from_result(request_body),
       )
 

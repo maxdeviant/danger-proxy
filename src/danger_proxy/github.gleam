@@ -34,6 +34,7 @@ pub fn api_request(
   token: AccessToken,
   method: Method,
   url: String,
+  query: List(#(String, String)),
   body: Option(String),
 ) -> Result(Response(String), String) {
   let AccessToken(token) = token
@@ -44,6 +45,7 @@ pub fn api_request(
     |> request.set_host("api.github.com")
     |> request.set_method(method)
     |> request.set_path(url)
+    |> request.set_query(query)
     |> request.set_header("authorization", "Bearer " <> token)
     |> fn(req) {
       case body {
