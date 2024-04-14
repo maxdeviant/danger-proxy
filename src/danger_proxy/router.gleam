@@ -140,7 +140,6 @@ fn rate_limit_status(_req: Request, ctx: Context) -> Response {
     case rate_limit {
       Ok(rate_limit) -> {
         let now = clock.now(ctx.clock)
-
         let reset_in = birl.legible_difference(now, rate_limit.reset)
 
         Ok(
