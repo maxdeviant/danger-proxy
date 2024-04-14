@@ -1,3 +1,4 @@
+import bigben/clock
 import danger_proxy/github
 import danger_proxy/router
 import danger_proxy/web.{Context}
@@ -8,6 +9,7 @@ import gleam/string
 import glenvy/dotenv
 import glenvy/env
 import mist
+import danger_proxy/github_rate_limit_tracker
 import wisp
 
 pub fn main() {
@@ -39,8 +41,15 @@ pub fn main() {
       "Missing environment variable: 'ALLOWED_REPOS'"
     })
 
+  let assert Ok(github_rate_limit_tracker) = github_rate_limit_tracker.start()
+
   let ctx =
-    Context(github_token: github_api_token, allowed_repos: allowed_repos)
+    Context(
+      clock: clock.new(),
+      github_token: github_api_token,
+      github_rate_limit_tracker: github_rate_limit_tracker,
+      allowed_repos: allowed_repos,
+    )
 
   let port =
     env.get_int("PORT")

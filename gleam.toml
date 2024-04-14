@@ -2,12 +2,16 @@ name = "danger_proxy"
 version = "1.0.0"
 
 [dependencies]
+bigben = "~> 1.0"
+birl = "~> 1.6"
 gleam_erlang = "~> 0.25"
 gleam_hackney = "~> 1.2"
 gleam_http = "~> 3.6"
+gleam_otp = "~> 0.10"
 gleam_stdlib = "~> 0.34 or ~> 1.0"
 glenvy = "~> 0.5"
 mist = "~> 1.0"
+shakespeare = "~> 0.1"
 wisp = "~> 0.14"
 
 [dev-dependencies]
