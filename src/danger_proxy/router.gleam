@@ -2,6 +2,7 @@ import bigben/clock
 import birl
 import danger_proxy/github.{type OwnerAndRepo, OwnerAndRepo}
 import danger_proxy/github_rate_limit_tracker
+import danger_proxy/proxy_request
 import danger_proxy/web.{type Context, middleware}
 import gleam/bit_array
 import gleam/http.{type Method, Get}
@@ -11,9 +12,7 @@ import gleam/io
 import gleam/list
 import gleam/option
 import gleam/result.{try}
-import gleam/string
 import gleam/string_builder
-import gleam/uri
 import wisp.{type Request, type Response}
 
 pub fn handle_request(req: Request, ctx: Context) -> Response {
@@ -42,37 +41,22 @@ fn proxy_github_api_request(
       |> result.map_error(fn(_) { "Request not allowed." }),
     )
 
-    let query = wisp.get_query(req)
-
+    let proxy_request = proxy_request.from_request(req, segments)
     let request_body =
       req
       |> wisp.read_body_to_bitstring
       |> result.try(bit_array.to_string)
 
     wisp.log_info(
-      "Proxying "
-      <> {
-        req.method
-        |> http.method_to_string
-        |> string.uppercase
-      }
-      <> " /"
-      <> string.join(segments, "/")
-      <> {
-        case query {
-          [] -> ""
-          query -> "?" <> uri.query_to_string(query)
-        }
-      }
-      <> " to GitHub",
+      "Proxying " <> proxy_request.to_string(proxy_request) <> " to GitHub",
     )
 
     let github_result =
       github.api_request(
         ctx.github_token,
-        req.method,
-        string.join(segments, "/"),
-        query,
+        proxy_request.method,
+        proxy_request.path,
+        proxy_request.query,
         option.from_result(request_body),
       )
 
