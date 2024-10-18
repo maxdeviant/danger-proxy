@@ -8,7 +8,7 @@ primary_region = 'ewr'
 
 [env]
 PORT = "8080"
-ALLOWED_REPOS = "zed-industries/zed"
+ALLOWED_REPOS = "zed-industries/zed,zed-industries/extensions"
 
 [http_service]
 internal_port = 8080
